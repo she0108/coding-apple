@@ -5,6 +5,8 @@ const app = express();
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
 // "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
 app.use(express.static(__dirname + "/public"));
+// ejs setting
+app.set("view engine", "ejs");
 
 // MongoDB 연결하는 코드
 const { MongoClient } = require("mongodb");
@@ -49,6 +51,11 @@ app.get("/about", (req, res) => {
 // "post" collection의 데이터를 배열 형식으로 불러옴
 app.get("/list", async (req, res) => {
   let result = await db.collection("post").find().toArray();
-  console.log(result); // 터미널에 출력됨
-  res.send(result.map((item) => item.date));
+  res.render("list.ejs", { posts: result }); // ejs파일로 데이터 전송
+});
+
+// "/time"으로 접속하면 현재 시간 표시
+app.get("/time", (req, res) => {
+  let now = new Date();
+  res.render("time.ejs", { time: now });
 });
