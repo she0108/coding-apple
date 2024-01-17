@@ -2,6 +2,10 @@
 const express = require("express");
 const app = express();
 
+// static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
+// "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
+app.use(express.static(__dirname + "/public"));
+
 // 내 컴퓨터에서 8080 PORT 오픈
 // PORT: 다른 컴퓨터에서 내 컴퓨터에 접속할 수 있는 통로
 // "http://IPv4주소:PORT번호"로 내 컴퓨터에 접속 가능
