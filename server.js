@@ -45,3 +45,10 @@ app.get("/hello", (req, res) => {
 app.get("/about", (req, res) => {
   res.sendFile(__dirname + "/about.html");
 });
+
+// "post" collection의 데이터를 배열 형식으로 불러옴
+app.get("/list", async (req, res) => {
+  let result = await db.collection("post").find().toArray();
+  console.log(result); // 터미널에 출력됨
+  res.send(result.map((item) => item.date));
+});
