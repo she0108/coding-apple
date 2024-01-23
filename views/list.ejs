@@ -11,8 +11,8 @@
     <div class="white-bg">
       <% for (let i = 0; i < posts.length; i++) { %>
       <div class="list-box">
-        <h4>Hello No.<%= i %></h4>
-        <p><%= JSON.stringify(posts[i].date) %></p>
+        <h4><%= posts[i].title %></h4>
+        <p><%= posts[i].content %></p>
       </div>
       <% } %>
     </div>

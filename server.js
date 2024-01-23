@@ -69,11 +69,22 @@ app.get("/write", (req, res) => {
 });
 
 // "/newpost"로 온 POST요청 처리
-app.post("/newpost", (req, res) => {
-  console.log(req.body); // 유저가 입력한 데이터 터미널에 출력
-  // db에 유저가 입력한 title과 content 저장
-  db.collection("post").insertOne({
-    title: req.body.title,
-    content: req.body.content,
-  });
+app.post("/newpost", async (req, res) => {
+  let userInput = req.body;
+  try {
+    // 예외처리 (title과 content 모두 공백이 아닌 경우에만 db에 저장)
+    if (userInput.title && userInput.content) {
+      await db.collection("post").insertOne({
+        title: req.body.title,
+        content: req.body.content,
+      });
+      res.redirect("/list"); // 새 글 작성 후 목록 페이지로 이동
+    } else {
+      // res.send("Title/content required");
+      res.redirect("/write");
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e); // 서버 오류 메시지 (+에러코드 전송)
+  }
 });
