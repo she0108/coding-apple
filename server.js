@@ -1,6 +1,8 @@
 // express 라이브러리 사용
 const express = require("express");
 const app = express();
+// MongoDB 연결하는 코드
+const { MongoClient, ObjectId } = require("mongodb");
 
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
 // "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
@@ -10,9 +12,6 @@ app.set("view engine", "ejs");
 // 유저가 보낸 요청을 req.body로 간단히 사용할 수 있도록 세팅
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// MongoDB 연결하는 코드
-const { MongoClient } = require("mongodb");
 
 let db;
 const url =
@@ -86,5 +85,25 @@ app.post("/newpost", async (req, res) => {
   } catch (e) {
     console.log(e);
     res.status(500).send(e); // 서버 오류 메시지 (+에러코드 전송)
+  }
+});
+
+// 상세페이지
+// URL파라미터 문법 - "/:변수명"
+app.get("/detail/:id", async (req, res) => {
+  try {
+    // findOne(objectData): objectData를 포함하는 document 1개 불러옴
+    let result = await db
+      .collection("post")
+      .findOne({ _id: new ObjectId(req.params.id) }); // req.params로 URL파라미터 사용
+    // id 형식은 맞는데 db에 존재하지 않는 경우 null이 반환됨
+    if (!result) {
+      res.status(404).send("Invalid URL");
+    }
+    res.render("detail.ejs", { post: result });
+  } catch (e) {
+    console.log(e);
+    // id가 형식에 맞지 않는 경우 bSON 에러 발생
+    res.status(404).send("Invalid URL");
   }
 });
