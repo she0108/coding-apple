@@ -7,6 +7,9 @@ const app = express();
 app.use(express.static(__dirname + "/public"));
 // ejs setting
 app.set("view engine", "ejs");
+// 유저가 보낸 요청을 req.body로 간단히 사용할 수 있도록 세팅
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // MongoDB 연결하는 코드
 const { MongoClient } = require("mongodb");
@@ -38,9 +41,9 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-// "/hello"로 접속 시 db의 "post" collection에 document 1개 추가
+// "/hello"로 접속 시 db의 "hello" collection에 document 1개 추가
 app.get("/hello", (req, res) => {
-  db.collection("post").insertOne({ date: Date.now() });
+  db.collection("hello").insertOne({ date: Date.now() });
   res.send("Hello");
 });
 
@@ -58,4 +61,19 @@ app.get("/list", async (req, res) => {
 app.get("/time", (req, res) => {
   let now = new Date();
   res.render("time.ejs", { time: now });
+});
+
+// 글 작성 페이지
+app.get("/write", (req, res) => {
+  res.render("write.ejs");
+});
+
+// "/newpost"로 온 POST요청 처리
+app.post("/newpost", (req, res) => {
+  console.log(req.body); // 유저가 입력한 데이터 터미널에 출력
+  // db에 유저가 입력한 title과 content 저장
+  db.collection("post").insertOne({
+    title: req.body.title,
+    content: req.body.content,
+  });
 });
