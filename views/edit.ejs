@@ -8,8 +8,8 @@
   </head>
   <body class="grey-bg">
     <%- include("nav.ejs") %>
-    <!-- "/change" URL로 POST요청 전송 -->
-    <form class="form-box" action="/edit" method="POST">
+    <!-- "?_method=PUT"을 붙여 PUT요청으로 변경 (method override 라이브러리) -->
+    <form class="form-box" action="/edit?_method=PUT" method="POST">
       <h4>글 수정하기</h4>
       <input name="id" value="<%= post._id %>" hidden />
       <input name="title" placeholder="제목" value="<%= post.title %>" />

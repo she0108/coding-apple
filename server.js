@@ -3,6 +3,8 @@ const express = require("express");
 const app = express();
 // MongoDB 연결하는 코드
 const { MongoClient, ObjectId } = require("mongodb");
+// method override 라이브러리 사용
+const methodOverride = require("method-override");
 
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
 // "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
@@ -12,6 +14,8 @@ app.set("view engine", "ejs");
 // 유저가 보낸 요청을 req.body로 간단히 사용할 수 있도록 세팅
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// method override 라이브러리 사용
+app.use(methodOverride("_method"));
 
 let db;
 const url =
@@ -123,7 +127,7 @@ app.get("/edit/:id", async (req, res) => {
 });
 
 // 글 수정
-app.post("/edit", async (req, res) => {
+app.put("/edit", async (req, res) => {
   try {
     let input = req.body;
     // 제목 또는 내용이 공백인 경우 예외처리
