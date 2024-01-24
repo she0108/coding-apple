@@ -11,7 +11,34 @@
     <div class="detail-bg">
       <h4><%= post.title %></h4>
       <p><%= post.content %></p>
-      <a href="/edit/<%= post._id %>"><button class="edit-btn">수정</button></a>
+      <a href="/edit/<%= post._id %>"><button class="btn">수정</button></a>
+      <button class="delete btn" data-postid="<%= post._id %>">삭제</button>
     </div>
+    <script>
+      // script태그 안의 코드는 브라우저 새로고침할 때마다 실행됨
+      document.querySelectorAll(".delete")[0].addEventListener("click", (e) => {
+        fetch("/post?postid=" + e.target.dataset.postid, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((res) => {
+            console.log(res.text()); // 서버에서 보낸 메시지 콘솔에 출력
+            if (res.status == 200) {
+              return res.json();
+            } else {
+              console.log("서버에서 에러코드 전송함");
+            }
+          })
+          .then((res) => {
+            console.log("success");
+            // e.target.parentElement.parentElement.style.display = "none";
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+    </script>
   </body>
 </html>

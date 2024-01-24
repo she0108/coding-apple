@@ -156,3 +156,16 @@ app.put("/edit", async (req, res) => {
     res.send("수정 실패");
   }
 });
+
+app.delete("/post", async (req, res) => {
+  try {
+    let result = await db
+      .collection("post")
+      .deleteOne({ _id: new ObjectId(req.query.postid) });
+    console.log(result);
+    res.send("삭제 완료");
+  } catch (e) {
+    console.log(e);
+    res.send("삭제 실패");
+  }
+});
