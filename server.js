@@ -123,20 +123,29 @@ app.get("/edit/:id", async (req, res) => {
 });
 
 // 글 수정
-app.post("/change/:id", async (req, res) => {
+app.post("/edit", async (req, res) => {
   try {
     let input = req.body;
-    if (input.title && input.content) {
-      let result = await db
-        .collection("post")
-        .updateOne(
-          { _id: new ObjectId(req.params.id) },
-          { $set: { title: input.title, content: input.content } }
-        );
-      console.log(result);
+    // 제목 또는 내용이 공백인 경우 예외처리
+    if (!input.title || !input.content) {
+      console.log("빈 제목 또는 빈 내용");
+      return res.redirect("/edit/" + input.id);
+    }
+    // 조건 만족하는 document 1개 찾아서 수정
+    let result = await db.collection("post").updateOne(
+      { _id: new ObjectId(input.id) }, // 검색 조건
+      { $set: { title: input.title, content: input.content } } // 수정사항
+    );
+    console.log(result);
+    if (result.matchedCount == 0) {
+      console.log("존재하지 않는 id");
+      res.status(404).send("존재하지 않는 글입니다.");
+    } else if (result.matchedCount == 1 && result.modifiedCount == 0) {
+      console.log("변경사항 없음");
       res.redirect("/list");
     } else {
-      res.redirect("/change/" + req.params.id);
+      console.log("수정 완료");
+      res.redirect("/list");
     }
   } catch (e) {
     console.log(e);
