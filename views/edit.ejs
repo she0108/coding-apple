@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link href="/main.css" rel="stylesheet" />
+  </head>
+  <body class="grey-bg">
+    <%- include("nav.ejs") %>
+    <!-- "/change" URL로 POST요청 전송 -->
+    <form class="form-box" action="/change/<%= post._id %>" method="POST">
+      <h4>글쓰기</h4>
+      <input name="title" placeholder="제목" value="<%= post.title %>" />
+      <input name="content" placeholder="내용" value="<%= post.content %>" />
+      <button type="submit">완료</button>
+    </form>
+  </body>
+</html>

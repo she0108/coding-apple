@@ -107,3 +107,39 @@ app.get("/detail/:id", async (req, res) => {
     res.status(404).send("Invalid URL");
   }
 });
+
+// 수정페이지
+app.get("/edit/:id", async (req, res) => {
+  try {
+    // 기존 제목, 내용 불러와서 표시
+    let result = await db
+      .collection("post")
+      .findOne({ _id: new ObjectId(req.params.id) });
+    res.render("edit.ejs", { post: result });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send("서버 오류");
+  }
+});
+
+// 글 수정
+app.post("/change/:id", async (req, res) => {
+  try {
+    let input = req.body;
+    if (input.title && input.content) {
+      let result = await db
+        .collection("post")
+        .updateOne(
+          { _id: new ObjectId(req.params.id) },
+          { $set: { title: input.title, content: input.content } }
+        );
+      console.log(result);
+      res.redirect("/list");
+    } else {
+      res.redirect("/change/" + req.params.id);
+    }
+  } catch (e) {
+    console.log(e);
+    res.send("수정 실패");
+  }
+});
