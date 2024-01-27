@@ -81,7 +81,7 @@ app.post("/newpost", async (req, res) => {
         title: req.body.title,
         content: req.body.content,
       });
-      res.redirect("/list"); // 새 글 작성 후 목록 페이지로 이동
+      res.redirect("/list/1"); // 새 글 작성 후 목록 페이지로 이동
     } else {
       // res.send("Title/content required");
       res.redirect("/write");
@@ -172,19 +172,24 @@ app.delete("/post", async (req, res) => {
 });
 
 // 목록페이지 pagination
-app.get("/list/:page", async (req, res) => {
-  let page = req.params.page;
-  if (page == 0) {
-    return res.redirect("/list/1");
+app.get("/list/:index", async (req, res) => {
+  let index = req.params.index;
+  if (index == 0) {
+    return res.redirect("/list/1"); // 이전페이지 존재하지 않는 경우
   }
-  let result = await db
+  let posts = await db
     .collection("post")
     .find()
-    .skip((page - 1) * 7)
-    .limit(7)
+    .skip((index - 1) * 6) // 앞에 n개 건너뛰고
+    .limit(6) // n개 불러오기
     .toArray();
-  if (result.length == 0) {
-    return res.redirect("/list/" + (page - 1));
+  let postNum = await db.collection("post").countDocuments();
+  if (posts.length == 0) {
+    return res.redirect("/list/" + (index - 1)); // 다음페이지 존재하지 않는 경우
   }
-  res.render("list.ejs", { page: page, posts: result }); // ejs파일로 데이터 전송
+  res.render("list.ejs", {
+    postNum: postNum,
+    index: index,
+    posts: posts,
+  }); // ejs파일로 데이터 전송
 });

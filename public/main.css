@@ -82,23 +82,42 @@ div {
   margin-top: 10px;
 }
 
-.btn {
-  padding: 10px;
-  border: none;
-  background: lightgrey;
-  border-radius: 5px;
-  cursor: pointer;
+.header-text {
+  padding-left: 20px;
 }
 
 .page-bar {
   padding: 10px;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
 }
 
-.page-text {
-  font-size: 16px;
+.page-btn {
+  padding: 10px;
+  border: none;
+  font-size: 20px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-group {
+  display: flex;
+  flex-direction: row;
+}
+
+.index-box {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.index-text {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.index-text.bold {
   font-weight: 600;
 }

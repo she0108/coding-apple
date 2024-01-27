@@ -3,11 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>AppleForum - 게시판</title>
     <link href="/main.css" rel="stylesheet" />
   </head>
   <body class="grey-bg">
     <%- include("nav.ejs") %>
+    <h3 class="header-text">게시판(<%= postNum %>)</h3>
     <div class="white-bg">
       <% for (let i = 0; i < posts.length; i++) { %>
       <a href="/detail/<%= posts[i]._id %>">
@@ -18,10 +19,25 @@
       </a>
       <% } %>
     </div>
-    <div class="white-bg page-bar">
-      <a class="btn prev" href="/list/<%- parseInt(page) - 1 %>">이전</a>
-      <span class="page-text"><%= page %></span>
-      <a class="btn next" href="/list/<%- parseInt(page) + 1 %>">다음</a>
+    <div class="page-bar">
+      <div class="btn-group">
+        <a class="page-btn" href="/list/1"><<</a>
+        <a class="page-btn" href="/list/<%- parseInt(index) - 1 %>"><</a>
+      </div>
+      <% for (let i = parseInt(index) - 2; i < parseInt(index) + 3; i++) { %>
+      <div class="index-box">
+        <% if (0 < i && i < Math.ceil(postNum / 6) + 1) { %> <% if (i ==
+        parseInt(index)) { %>
+        <a class="index-text bold" href="/list/<%= i %>"><%= i %></a>
+        <% } else { %>
+        <a class="index-text" href="/list/<%= i %>"><%= i %></a>
+        <% } %> <% } %>
+      </div>
+      <% } %>
+      <div class="btn-group">
+        <a class="page-btn" href="/list/<%- parseInt(index) + 1 %>">></a>
+        <a class="page-btn" href="/list/<%- Math.ceil(postNum / 6) %>">>></a>
+      </div>
     </div>
   </body>
 </html>
