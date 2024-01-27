@@ -18,5 +18,10 @@
       </a>
       <% } %>
     </div>
+    <div class="white-bg page-bar">
+      <a class="btn prev" href="/list/<%- parseInt(page) - 1 %>">이전</a>
+      <span class="page-text"><%= page %></span>
+      <a class="btn next" href="/list/<%- parseInt(page) + 1 %>">다음</a>
+    </div>
   </body>
 </html>

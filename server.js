@@ -146,10 +146,10 @@ app.put("/edit", async (req, res) => {
       res.status(404).send("존재하지 않는 글입니다.");
     } else if (result.matchedCount == 1 && result.modifiedCount == 0) {
       console.log("변경사항 없음");
-      res.redirect("/list");
+      res.redirect("/edit/" + input.id);
     } else {
       console.log("수정 완료");
-      res.redirect("/list");
+      res.redirect("/edit/" + input.id);
     }
   } catch (e) {
     console.log(e);
@@ -157,6 +157,7 @@ app.put("/edit", async (req, res) => {
   }
 });
 
+// 글 삭제 기능
 app.delete("/post", async (req, res) => {
   try {
     let result = await db
@@ -168,4 +169,22 @@ app.delete("/post", async (req, res) => {
     console.log(e);
     res.send("삭제 실패");
   }
+});
+
+// 목록페이지 pagination
+app.get("/list/:page", async (req, res) => {
+  let page = req.params.page;
+  if (page == 0) {
+    return res.redirect("/list/1");
+  }
+  let result = await db
+    .collection("post")
+    .find()
+    .skip((page - 1) * 7)
+    .limit(7)
+    .toArray();
+  if (result.length == 0) {
+    return res.redirect("/list/" + (page - 1));
+  }
+  res.render("list.ejs", { page: page, posts: result }); // ejs파일로 데이터 전송
 });
