@@ -5,6 +5,7 @@ const app = express();
 const { MongoClient, ObjectId } = require("mongodb");
 // method override 라이브러리 사용
 const methodOverride = require("method-override");
+require("dotenv").config();
 
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
 // "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
@@ -18,8 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 
 let db;
-const url =
-  "mongodb+srv://she020108:ebP2mtLOblNyvZni@cluster0.dtbvib6.mongodb.net/?retryWrites=true&w=majority";
+const url = process.env.MONGO_DB_URL;
 new MongoClient(url)
   .connect() // MongoDB에 접속
   .then((client) => {
@@ -33,8 +33,8 @@ new MongoClient(url)
 // 내 컴퓨터에서 8080 PORT 오픈
 // PORT: 다른 컴퓨터에서 내 컴퓨터에 접속할 수 있는 통로
 // "http://IPv4주소:PORT번호"로 내 컴퓨터에 접속 가능
-app.listen(8080, () => {
-  console.log("http://localhost:8080 에서 서버 실행 중");
+app.listen(process.env.PORT, () => {
+  console.log(`http://localhost:${process.env.PORT} 에서 서버 실행 중`);
 });
 
 // path(/)에 접속 시 콜백함수가 실행됨
@@ -193,3 +193,13 @@ app.get("/list/:index", async (req, res) => {
     posts: posts,
   }); // ejs파일로 데이터 전송
 });
+
+// 마지막 게시글 id 받아서 쿼리하는 게 skip보다 빠름
+// app.get("/list/next/:id", async (req, res) => {
+//   let result = await db.collection("post")
+//     .find({ _id: { $gt: new ObjectId(req.params.id) } })
+//     .limit(5).toArray()
+//   res.render("list.ejs", { posts: result })
+// })
+
+// TODO: 이전페이지, 다음페이지 기능 위 방법으로 수정할 것
