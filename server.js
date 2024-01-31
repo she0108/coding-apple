@@ -30,6 +30,12 @@ new MongoClient(url)
     console.log(err);
   });
 
+// "/list"로 시작하는 API 요청 시 현재 시간을 터미널에 출력
+app.use("/list", (req, res, next) => {
+  console.log(new Date());
+  next();
+});
+
 // 내 컴퓨터에서 8080 PORT 오픈
 // PORT: 다른 컴퓨터에서 내 컴퓨터에 접속할 수 있는 통로
 // "http://IPv4주소:PORT번호"로 내 컴퓨터에 접속 가능
@@ -198,8 +204,6 @@ app.get("/list/:index", async (req, res) => {
 // app.get("/list/next/:id", async (req, res) => {
 //   let result = await db.collection("post")
 //     .find({ _id: { $gt: new ObjectId(req.params.id) } })
-//     .limit(5).toArray()
-//   res.render("list.ejs", { posts: result })
+//     .limit(5).toArray();
+//   res.render("list.ejs", { posts: result });
 // })
-
-// TODO: 이전페이지, 다음페이지 기능 위 방법으로 수정할 것
