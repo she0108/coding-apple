@@ -5,6 +5,7 @@ const app = express();
 const { MongoClient, ObjectId } = require("mongodb");
 // method override 라이브러리 사용
 const methodOverride = require("method-override");
+const bcrypt = require("bcrypt");
 require("dotenv").config();
 
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
@@ -17,6 +18,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // method override 라이브러리 사용
 app.use(methodOverride("_method"));
+
+// passport 라이브러리 세팅
+const session = require("express-session");
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const MongoStore = require("connect-mongo");
+
+app.use(passport.initialize());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60 * 60 * 1000 }, // 세션 유지 시간
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_DB_URL,
+      dbName: "forum",
+    }),
+  })
+);
+app.use(passport.session());
 
 let db;
 const url = process.env.MONGO_DB_URL;
@@ -34,6 +56,42 @@ new MongoClient(url)
 app.use("/list", (req, res, next) => {
   console.log(new Date());
   next();
+});
+
+// 로그인 기능
+passport.use(
+  new LocalStrategy(async (username, password, cb) => {
+    // 입력받은 아이디, 비밀번호 검사
+    // passport.authenticate("local")()로 실행
+    let result = await db.collection("user").findOne({ username: username });
+    if (!result) {
+      return cb(null, false, { message: "아이디 DB에 없음" });
+    }
+    if (await bcrypt.compare(password, result.password)) {
+      return cb(null, result);
+    } else {
+      return cb(null, false, { message: "비밀번호 불일치" });
+    }
+  })
+);
+
+// req.logIn() 실행 시 자동으로 실행
+passport.serializeUser((user, done) => {
+  console.log(user);
+  process.nextTick(() => {
+    done(null, { id: user._id, username: user.username });
+  });
+});
+
+// 유저가 보낸 쿠키 분석
+passport.deserializeUser(async (user, done) => {
+  let result = await db
+    .collection("user")
+    .findOne({ _id: new ObjectId(user.id) });
+  delete result.password;
+  process.nextTick(() => {
+    done(null, result); // DB 조회해서 최신 유저 정보를 req.user에 넣어줌
+  });
 });
 
 // 내 컴퓨터에서 8080 PORT 오픈
@@ -74,7 +132,8 @@ app.get("/time", (req, res) => {
 
 // 글 작성 페이지
 app.get("/write", (req, res) => {
-  res.render("write.ejs");
+  if (!req.user) res.redirect("/login");
+  else res.render("write.ejs");
 });
 
 // "/newpost"로 온 POST요청 처리
@@ -207,3 +266,57 @@ app.get("/list/:index", async (req, res) => {
 //     .limit(5).toArray();
 //   res.render("list.ejs", { posts: result });
 // })
+
+// 회원가입 페이지
+app.get("/register", (req, res) => {
+  res.render("register.ejs");
+});
+
+// 회원가입 기능
+app.post("/register", async (req, res) => {
+  if (!req.body.username || !req.body.password || !req.body.check) {
+    res.send("아이디와 비밀번호를 모두 입력해주세요.");
+  } else if (req.body.password != req.body.check) {
+    res.send("비밀번호를 다시 한번 확인해주세요.");
+  } else {
+    let duplicate = await db
+      .collection("user")
+      .findOne({ username: req.body.username });
+    if (duplicate) {
+      res.send("사용 중인 아이디입니다.");
+    } else {
+      await db.collection("user").insertOne({
+        username: req.body.username,
+        password: await bcrypt.hash(req.body.password, 10),
+      });
+      res.redirect("/");
+    }
+  }
+});
+
+// 로그인 페이지
+app.get("/login", (req, res) => {
+  console.log(req.user);
+  res.render("login.ejs");
+});
+
+// 로그인 기능
+app.post("/login", async (req, res, next) => {
+  passport.authenticate("local", (error, user, info) => {
+    if (error) return res.status(500).json(error);
+    if (!user) return res.status(401).json(info.message);
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      res.redirect("/");
+    });
+  })(req, res, next);
+});
+
+// 마이페이지
+app.get("/mypage", (req, res) => {
+  if (!req.user) {
+    res.redirect("/login");
+  } else {
+    res.render("mypage.ejs", { username: req.user.username });
+  }
+});
