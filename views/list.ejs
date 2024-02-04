@@ -19,24 +19,50 @@
       </a>
       <% } %>
     </div>
+    <div class="search-box">
+      <input class="search-input" type="text" value="<%= search %>" />
+      <button class="search-btn">검색</button>
+      <script>
+        document.querySelector(".search-btn").addEventListener("click", () => {
+          let value = document.querySelector(".search-input").value;
+          location.href = "/search?val=" + value; // "/search"로 페이지 이동 (GET요청)
+        });
+      </script>
+    </div>
     <div class="page-bar">
       <div class="btn-group">
-        <a class="page-btn" href="/list/1"><<</a>
-        <a class="page-btn" href="/list/<%- parseInt(index) - 1 %>"><</a>
+        <a class="page-btn" href="/list/1?val=<%= search %>"><<</a>
+        <a
+          class="page-btn"
+          href="/list/<%- parseInt(index) - 1 %>?val=<%= search %>"
+          ><</a
+        >
       </div>
       <% for (let i = parseInt(index) - 2; i < parseInt(index) + 3; i++) { %>
       <div class="index-box">
         <% if (0 < i && i < Math.ceil(postNum / 6) + 1) { %> <% if (i ==
         parseInt(index)) { %>
-        <a class="index-text bold" href="/list/<%= i %>"><%= i %></a>
+        <a class="index-text bold" href="/list/<%= i %>?val=<%= search %>"
+          ><%= i %></a
+        >
         <% } else { %>
-        <a class="index-text" href="/list/<%= i %>"><%= i %></a>
+        <a class="index-text" href="/list/<%= i %>?val=<%= search %>"
+          ><%= i %></a
+        >
         <% } %> <% } %>
       </div>
       <% } %>
       <div class="btn-group">
-        <a class="page-btn" href="/list/<%- parseInt(index) + 1 %>">></a>
-        <a class="page-btn" href="/list/<%- Math.ceil(postNum / 6) %>">>></a>
+        <a
+          class="page-btn"
+          href="/list/<%- parseInt(index) + 1 %>?val=<%= search %>"
+          >></a
+        >
+        <a
+          class="page-btn"
+          href="/list/<%- Math.ceil(postNum / 6) %>?val=<%= search %>"
+          >>></a
+        >
       </div>
     </div>
   </body>

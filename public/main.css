@@ -121,3 +121,25 @@ div {
 .index-text.bold {
   font-weight: 600;
 }
+
+.search-box {
+  padding: 0px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.search-input {
+  padding: 7px;
+  margin-right: 8px;
+  border: none;
+  flex-grow: 1;
+}
+
+.search-btn {
+  padding: 6px 10px;
+  background: lightgray;
+  border: none;
+  border-radius: 5px;
+  vertical-align: middle;
+}

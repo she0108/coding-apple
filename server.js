@@ -239,25 +239,52 @@ app.delete("/post", async (req, res) => {
 
 // 목록페이지 pagination
 app.get("/list/:index", async (req, res) => {
+  let search = req.query.val;
   let index = req.params.index;
-  if (index == 0) {
-    return res.redirect("/list/1"); // 이전페이지 존재하지 않는 경우
+  if (search) {
+    if (index == 0) {
+      return res.redirect("/list/1?val=" + search);
+    }
+    let posts = await db
+      .collection("post")
+      .find({ title: { $regex: ".*" + search + ".*" } })
+      .skip((index - 1) * 6)
+      .limit(6)
+      .toArray();
+    let postNum = await db
+      .collection("post")
+      .find({ title: { $regex: ".*" + search + ".*" } })
+      .count();
+    if (posts.length == 0) {
+      return res.redirect("/list/" + (index - 1) + "?val=" + search); // 다음페이지 존재하지 않는 경우
+    }
+    res.render("list.ejs", {
+      postNum: postNum,
+      index: index,
+      posts: posts,
+      search: search,
+    }); // ejs파일로 데이터 전송
+  } else {
+    if (index == 0) {
+      return res.redirect("/list/1"); // 이전페이지 존재하지 않는 경우
+    }
+    let posts = await db
+      .collection("post")
+      .find()
+      .skip((index - 1) * 6) // 앞에 n개 건너뛰고
+      .limit(6) // n개 불러오기
+      .toArray();
+    let postNum = await db.collection("post").countDocuments();
+    if (posts.length == 0) {
+      return res.redirect("/list/" + (index - 1)); // 다음페이지 존재하지 않는 경우
+    }
+    res.render("list.ejs", {
+      postNum: postNum,
+      index: index,
+      posts: posts,
+      search: "",
+    }); // ejs파일로 데이터 전송
   }
-  let posts = await db
-    .collection("post")
-    .find()
-    .skip((index - 1) * 6) // 앞에 n개 건너뛰고
-    .limit(6) // n개 불러오기
-    .toArray();
-  let postNum = await db.collection("post").countDocuments();
-  if (posts.length == 0) {
-    return res.redirect("/list/" + (index - 1)); // 다음페이지 존재하지 않는 경우
-  }
-  res.render("list.ejs", {
-    postNum: postNum,
-    index: index,
-    posts: posts,
-  }); // ejs파일로 데이터 전송
 });
 
 // 마지막 게시글 id 받아서 쿼리하는 게 skip보다 빠름
@@ -324,3 +351,8 @@ app.get("/mypage", (req, res) => {
 
 // routes/shop.js에 있는 API 사용
 app.use("/shop", require("./routes/shop.js"));
+
+app.get("/search", async (req, res) => {
+  let val = req.query.val;
+  res.redirect("/list/1?val=" + val);
+});
