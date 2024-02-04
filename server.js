@@ -2,7 +2,7 @@
 const express = require("express");
 const app = express();
 // MongoDB 연결하는 코드
-const { MongoClient, ObjectId } = require("mongodb");
+const { ObjectId } = require("mongodb");
 // method override 라이브러리 사용
 const methodOverride = require("method-override");
 const bcrypt = require("bcrypt");
@@ -24,6 +24,7 @@ const session = require("express-session");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const MongoStore = require("connect-mongo");
+const connectDB = require("./database.js");
 
 app.use(passport.initialize());
 app.use(
@@ -41,9 +42,7 @@ app.use(
 app.use(passport.session());
 
 let db;
-const url = process.env.MONGO_DB_URL;
-new MongoClient(url)
-  .connect() // MongoDB에 접속
+connectDB
   .then((client) => {
     console.log("DB연결성공");
     db = client.db("forum"); // "forum"이라는 이름의 db에 접속
@@ -53,10 +52,18 @@ new MongoClient(url)
   });
 
 // "/list"로 시작하는 API 요청 시 현재 시간을 터미널에 출력
-app.use("/list", (req, res, next) => {
-  console.log(new Date());
-  next();
-});
+// app.use("/list", (req, res, next) => {
+//   console.log(new Date());
+//   next();
+// });
+
+// 작성페이지, 수정페이지에 들어가려면 로그인해야 함
+checkLogin = (req, res, next) => {
+  if (!req.user) res.redirect("/login");
+  else next();
+};
+app.use("/write", checkLogin);
+app.use("/edit", checkLogin);
 
 // 로그인 기능
 passport.use(
@@ -116,12 +123,6 @@ app.get("/hello", (req, res) => {
 
 app.get("/about", (req, res) => {
   res.sendFile(__dirname + "/about.html");
-});
-
-// "post" collection의 데이터를 배열 형식으로 불러옴
-app.get("/list", async (req, res) => {
-  let result = await db.collection("post").find().toArray();
-  res.render("list.ejs", { posts: result }); // ejs파일로 데이터 전송
 });
 
 // "/time"으로 접속하면 현재 시간 표시
@@ -320,3 +321,6 @@ app.get("/mypage", (req, res) => {
     res.render("mypage.ejs", { username: req.user.username });
   }
 });
+
+// routes/shop.js에 있는 API 사용
+app.use("/shop", require("./routes/shop.js"));
