@@ -175,7 +175,16 @@ app.get("/detail/:id", async (req, res) => {
     if (!result) {
       res.status(404).send("Invalid URL");
     }
-    res.render("detail.ejs", { post: result, user: req.user._id });
+    let comments = await db
+      .collection("comment")
+      .find({ parentId: new ObjectId(req.params.id) })
+      .toArray();
+    console.log(comments);
+    res.render("detail.ejs", {
+      post: result,
+      comments: comments,
+      user: req.user ? req.user._id : "",
+    });
   } catch (e) {
     console.log(e);
     // id가 형식에 맞지 않는 경우 bSON 에러 발생
@@ -320,3 +329,24 @@ app.get("/mypage", (req, res) => {
 app.use("/shop", require("./routes/shop.js"));
 app.use("/list", require("./routes/list.js"));
 app.use("/search", require("./routes/search.js"));
+
+// 댓글작성기능
+app.post("/comment", async (req, res) => {
+  let content = req.body.content;
+  let parentId = req.body.parentId;
+  try {
+    if (content) {
+      // 댓글 DB에 저장
+      await db.collection("comment").insertOne({
+        content: content,
+        parentId: new ObjectId(parentId),
+        user: req.user._id,
+        username: req.user.username,
+      });
+    }
+    res.redirect("back");
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e); // 서버 오류 메시지 (+에러코드 전송)
+  }
+});

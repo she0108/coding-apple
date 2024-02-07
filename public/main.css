@@ -82,16 +82,16 @@ div {
   margin-top: 10px;
 }
 
-.detail-bg h5 span {
-  font-size: 16px;
-}
-
 .detail-bg h4 {
   font-size: 18px;
 }
 
-.detail-bg p {
-  margin-bottom: 40px;
+.detail-bg > p {
+  margin-bottom: 30px;
+}
+
+.detail-bg hr {
+  margin: 20px 0px;
 }
 
 .header-text {
@@ -141,17 +141,43 @@ div {
   align-items: center;
 }
 
-.search-input {
+.comment {
+  padding: 0px 20px;
+  margin-top: 20px;
+}
+
+.comment form {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.search-input,
+.comment-input {
   padding: 7px;
   margin-right: 8px;
-  border: none;
   flex-grow: 1;
 }
 
-.search-btn {
+.search-btn,
+.comment-btn {
   padding: 6px 10px;
   background: lightgray;
   border: none;
   border-radius: 5px;
   vertical-align: middle;
+}
+
+.comment-box {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.comment-box .username {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.comment-box .content {
+  font-size: 14px;
 }

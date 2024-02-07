@@ -9,17 +9,37 @@
   <body class="grey-bg">
     <%- include("nav.ejs") %>
     <div class="detail-bg">
-      <h5>
-        <span><%= post.username %>&nbsp;&nbsp;&nbsp;</span><%=
-        post.date.toLocaleDateString('ko-KR') %>
-      </h5>
-      <hr />
       <h4><%= post.title %></h4>
+      <hr />
       <p><%= post.content %></p>
-      <a href="/edit/<%= post._id %>"><button class="btn">수정</button></a>
+      <p>
+        <%= post.username %>&nbsp;&nbsp;<%=
+        post.date.toLocaleDateString('ko-KR') %>
+      </p>
       <% if (user.toString() == post.user.toString()) { %>
+      <a href="/edit/<%= post._id %>"><button class="btn">수정</button></a>
       <button class="delete btn" data-postid="<%= post._id %>">삭제</button>
       <% } %>
+      <hr />
+      <div class="comment">
+        <form action="/comment" method="POST">
+          <input
+            class="comment-input"
+            name="content"
+            type="text"
+            placeholder="댓글을 입력하세요"
+          />
+          <input name="parentId" value="<%= post._id %>" hidden />
+          <button class="comment-btn" type="submit">등록</button>
+        </form>
+        <% for (let i = 0; i < comments.length; i++) { %>
+        <div class="comment-box">
+          <span class="username"><%= comments[i].username %></span>
+          &nbsp;
+          <span class="content"><%= comments[i].content %></span>
+        </div>
+        <% } %>
+      </div>
     </div>
     <script>
       // script태그 안의 코드는 브라우저 새로고침할 때마다 실행됨
