@@ -59,8 +59,10 @@ connectDB
 
 // 작성페이지, 수정페이지에 들어가려면 로그인해야 함
 checkLogin = (req, res, next) => {
-  if (!req.user) res.redirect("/login");
-  else next();
+  console.log(req.user);
+  if (!req.user) {
+    res.redirect("/login");
+  } else next();
 };
 app.use("/write", checkLogin);
 app.use("/edit", checkLogin);
@@ -112,7 +114,8 @@ app.listen(process.env.PORT, () => {
 // 메인페이지(http:/localhost:8080)에 접속 시 index.html 페이지 표시
 // __dirname: 현재 파일이 속해있는 폴더의 절대경로
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  // res.sendFile(__dirname + "/index.html");
+  res.render("main.ejs");
 });
 
 // "/hello"로 접속 시 db의 "hello" collection에 document 1개 추가
@@ -133,8 +136,7 @@ app.get("/time", (req, res) => {
 
 // 글 작성 페이지
 app.get("/write", (req, res) => {
-  if (!req.user) res.redirect("/login");
-  else res.render("write.ejs");
+  res.render("write.ejs");
 });
 
 // "/newpost"로 온 POST요청 처리
@@ -192,8 +194,8 @@ app.get("/edit/:id", async (req, res) => {
   }
 });
 
-// 글 수정
-app.put("/edit", async (req, res) => {
+// 수정기능
+app.put("/edit/", async (req, res) => {
   try {
     let input = req.body;
     // 제목 또는 내용이 공백인 경우 예외처리
@@ -237,56 +239,6 @@ app.delete("/post", async (req, res) => {
   }
 });
 
-// 목록페이지 pagination
-app.get("/list/:index", async (req, res) => {
-  let search = req.query.val;
-  let index = req.params.index;
-  if (search) {
-    if (index == 0) {
-      return res.redirect("/list/1?val=" + search);
-    }
-    let posts = await db
-      .collection("post")
-      .find({ title: { $regex: ".*" + search + ".*" } })
-      .skip((index - 1) * 6)
-      .limit(6)
-      .toArray();
-    let postNum = await db
-      .collection("post")
-      .find({ title: { $regex: ".*" + search + ".*" } })
-      .count();
-    if (posts.length == 0) {
-      return res.redirect("/list/" + (index - 1) + "?val=" + search); // 다음페이지 존재하지 않는 경우
-    }
-    res.render("list.ejs", {
-      postNum: postNum,
-      index: index,
-      posts: posts,
-      search: search,
-    }); // ejs파일로 데이터 전송
-  } else {
-    if (index == 0) {
-      return res.redirect("/list/1"); // 이전페이지 존재하지 않는 경우
-    }
-    let posts = await db
-      .collection("post")
-      .find()
-      .skip((index - 1) * 6) // 앞에 n개 건너뛰고
-      .limit(6) // n개 불러오기
-      .toArray();
-    let postNum = await db.collection("post").countDocuments();
-    if (posts.length == 0) {
-      return res.redirect("/list/" + (index - 1)); // 다음페이지 존재하지 않는 경우
-    }
-    res.render("list.ejs", {
-      postNum: postNum,
-      index: index,
-      posts: posts,
-      search: "",
-    }); // ejs파일로 데이터 전송
-  }
-});
-
 // 마지막 게시글 id 받아서 쿼리하는 게 skip보다 빠름
 // app.get("/list/next/:id", async (req, res) => {
 //   let result = await db.collection("post")
@@ -297,6 +249,9 @@ app.get("/list/:index", async (req, res) => {
 
 // 회원가입 페이지
 app.get("/register", (req, res) => {
+  if (req.user) {
+    return res.send("로그인 상태입니다.");
+  }
   res.render("register.ejs");
 });
 
@@ -324,7 +279,9 @@ app.post("/register", async (req, res) => {
 
 // 로그인 페이지
 app.get("/login", (req, res) => {
-  console.log(req.user);
+  if (req.user) {
+    return res.send("로그인 상태입니다.");
+  }
   res.render("login.ejs");
 });
 
@@ -349,10 +306,7 @@ app.get("/mypage", (req, res) => {
   }
 });
 
-// routes/shop.js에 있는 API 사용
+// 해당 경로의 파일에 있는 API 사용
 app.use("/shop", require("./routes/shop.js"));
-
-app.get("/search", async (req, res) => {
-  let val = req.query.val;
-  res.redirect("/list/1?val=" + val);
-});
+app.use("/list", require("./routes/list.js"));
+app.use("/search", require("./routes/search.js"));
