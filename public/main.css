@@ -82,6 +82,18 @@ div {
   margin-top: 10px;
 }
 
+.detail-bg h5 span {
+  font-size: 16px;
+}
+
+.detail-bg h4 {
+  font-size: 18px;
+}
+
+.detail-bg p {
+  margin-bottom: 40px;
+}
+
 .header-text {
   padding-left: 20px;
 }

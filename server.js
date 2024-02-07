@@ -148,6 +148,9 @@ app.post("/newpost", async (req, res) => {
       await db.collection("post").insertOne({
         title: req.body.title,
         content: req.body.content,
+        user: req.user._id,
+        username: req.user.username,
+        date: new Date(),
       });
       res.redirect("/list?p=1"); // 새 글 작성 후 목록 페이지로 이동
     } else {
@@ -172,7 +175,7 @@ app.get("/detail/:id", async (req, res) => {
     if (!result) {
       res.status(404).send("Invalid URL");
     }
-    res.render("detail.ejs", { post: result });
+    res.render("detail.ejs", { post: result, user: req.user._id });
   } catch (e) {
     console.log(e);
     // id가 형식에 맞지 않는 경우 bSON 에러 발생
@@ -184,9 +187,13 @@ app.get("/detail/:id", async (req, res) => {
 app.get("/edit/:id", async (req, res) => {
   try {
     // 기존 제목, 내용 불러와서 표시
-    let result = await db
-      .collection("post")
-      .findOne({ _id: new ObjectId(req.params.id) });
+    let result = await db.collection("post").findOne({
+      _id: new ObjectId(req.params.id),
+      user: new ObjectId(req.user._id),
+    });
+    if (!result) {
+      return res.send("다른 유저가 작성한 글은 수정할 수 없습니다.");
+    }
     res.render("edit.ejs", { post: result });
   } catch (e) {
     console.log(e);
@@ -228,10 +235,13 @@ app.put("/edit/", async (req, res) => {
 // 글 삭제 기능
 app.delete("/post", async (req, res) => {
   try {
-    let result = await db
-      .collection("post")
-      .deleteOne({ _id: new ObjectId(req.query.postid) });
-    console.log(result);
+    let result = await db.collection("post").deleteOne({
+      _id: new ObjectId(req.query.postid),
+      user: new ObjectId(req.user._id),
+    });
+    if (result.deletedCount == 0) {
+      return res.send("다른 유저가 쓴 글은 삭제할 수 없습니다.");
+    }
     res.send("삭제 완료");
   } catch (e) {
     console.log(e);

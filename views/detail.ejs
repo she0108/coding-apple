@@ -9,10 +9,17 @@
   <body class="grey-bg">
     <%- include("nav.ejs") %>
     <div class="detail-bg">
+      <h5>
+        <span><%= post.username %>&nbsp;&nbsp;&nbsp;</span><%=
+        post.date.toLocaleDateString('ko-KR') %>
+      </h5>
+      <hr />
       <h4><%= post.title %></h4>
       <p><%= post.content %></p>
       <a href="/edit/<%= post._id %>"><button class="btn">수정</button></a>
+      <% if (user.toString() == post.user.toString()) { %>
       <button class="delete btn" data-postid="<%= post._id %>">삭제</button>
+      <% } %>
     </div>
     <script>
       // script태그 안의 코드는 브라우저 새로고침할 때마다 실행됨

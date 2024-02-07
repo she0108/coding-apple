@@ -48,7 +48,6 @@ router.get("/", async (req, res) => {
     { $limit: 6 },
   ];
   let postNum = await db.collection("post").aggregate(countFilter).toArray();
-
   let posts = await db.collection("post").aggregate(postFilter).toArray();
   if (postNum > 1 && posts.length == 0) {
     return res.redirect(`/search?q=${query}&p=${page - 1}`);
