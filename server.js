@@ -149,7 +149,7 @@ app.post("/newpost", async (req, res) => {
         title: req.body.title,
         content: req.body.content,
       });
-      res.redirect("/list/1"); // 새 글 작성 후 목록 페이지로 이동
+      res.redirect("/list?p=1"); // 새 글 작성 후 목록 페이지로 이동
     } else {
       // res.send("Title/content required");
       res.redirect("/write");
