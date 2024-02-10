@@ -61,11 +61,13 @@ connectDB
 checkLogin = (req, res, next) => {
   console.log(req.user);
   if (!req.user) {
-    res.redirect("/login");
+    return res.redirect("/login");
   } else next();
 };
 app.use("/write", checkLogin);
 app.use("/edit", checkLogin);
+app.use("/comment", checkLogin);
+app.use("/chat", checkLogin);
 
 // 로그인 기능
 passport.use(
@@ -349,4 +351,42 @@ app.post("/comment", async (req, res) => {
     console.log(e);
     res.status(500).send(e); // 서버 오류 메시지 (+에러코드 전송)
   }
+});
+
+app.post("/chat/request", async (req, res) => {
+  // 채팅방 존재하는지 확인
+  let chatId;
+  let users = [new ObjectId(req.user._id), new ObjectId(req.body.userId)];
+  let usernames = [req.user.username, req.body.username];
+  let result = await db.collection("chatroom").find({ users: users }).toArray();
+  if (result.length == 0) {
+    // 채팅방 없음 (새로 생성)
+    let result2 = await db.collection("chatroom").insertOne({
+      users: users,
+      usernames: usernames,
+    });
+    chatId = result2.insertedId;
+  } else {
+    // 채팅방 존재
+    chatId = result[0]._id;
+  }
+  // 채팅 상세페이지로 이동
+  return res.redirect(`/chat/detail/${chatId}`);
+});
+
+// 채팅방 목록페이지
+app.get("/chat/list", async (req, res) => {
+  let result = await db
+    .collection("chatroom")
+    .find({ users: new ObjectId(req.user._id) })
+    .toArray();
+  console.log(result);
+  res.render("chatList.ejs", { result: result, username: req.user.username });
+});
+
+// 채팅방 상세페이지
+app.get("/chat/detail/:id", async (req, res) => {
+  let id = req.params.id;
+  console.log(id);
+  res.render("chatDetail.ejs");
 });
