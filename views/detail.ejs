@@ -20,11 +20,7 @@
       <a href="/edit/<%= post._id %>"><button class="btn">수정</button></a>
       <button class="delete btn" data-postid="<%= post._id %>">삭제</button>
       <% } else { %>
-      <form action="/chat/request" method="POST">
-        <input name="userId" value="<%= post.user %>" hidden />
-        <input name="username" value="<%= post.username %>" hidden />
-        <button type="submit">채팅</button>
-      </form>
+      <a href="/chat/request?id=<%= post.user %>"><button>채팅</button></a>
       <% } %>
       <hr />
       <div class="comment">

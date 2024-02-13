@@ -356,14 +356,12 @@ app.post("/comment", async (req, res) => {
 app.post("/chat/request", async (req, res) => {
   // 채팅방 존재하는지 확인
   let chatId;
-  let users = [new ObjectId(req.user._id), new ObjectId(req.body.userId)];
-  let usernames = [req.user.username, req.body.username];
+  let users = [new ObjectId(req.user._id), new ObjectId(req.query.id)];
   let result = await db.collection("chatroom").find({ users: users }).toArray();
   if (result.length == 0) {
     // 채팅방 없음 (새로 생성)
     let result2 = await db.collection("chatroom").insertOne({
       users: users,
-      usernames: usernames,
     });
     chatId = result2.insertedId;
   } else {
@@ -380,13 +378,15 @@ app.get("/chat/list", async (req, res) => {
     .collection("chatroom")
     .find({ users: new ObjectId(req.user._id) })
     .toArray();
-  console.log(result);
-  res.render("chatList.ejs", { result: result, username: req.user.username });
+  res.render("chatList.ejs", { result: result, user: req.user._id });
 });
 
 // 채팅방 상세페이지
 app.get("/chat/detail/:id", async (req, res) => {
   let id = req.params.id;
-  console.log(id);
-  res.render("chatDetail.ejs");
+  let chatroom = await db.collection("chatroom").findOnd({ _id: id }).toArray();
+  if (chatroom[0].users.includes(req.user._id)) {
+    return res.render("chatDetail.ejs", { chatroom: chatroom });
+  }
+  res.send("잘못된 접근");
 });
