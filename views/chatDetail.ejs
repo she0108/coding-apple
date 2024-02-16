@@ -10,14 +10,47 @@
     <%- include("nav.ejs") %>
     <div class="detail-bg">
       <div class="chat-screen">
-        <div class="chat-box"><span>안녕하세요</span></div>
-        <div class="chat-box"><span>안녕하세요</span></div>
-        <div class="chat-box mine"><span>안녕하세요</span></div>
+        <% for (let i = 0; i < messages.length; i++) { %> <% if
+        (messages[i].from == user) { %>
+        <div class="chat-box mine"><span><%= messages[i].msg %></span></div>
+        <% } else { %>
+        <div class="chat-box"><span><%= messages[i].msg %></span></div>
+        <% } %> <% } %>
       </div>
     </div>
     <div class="chat-form">
       <input class="chat-input" />
       <button class="chat-button">전송</button>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io@4.7.2/client-dist/socket.io.min.js"></script>
+    <script>
+      const socket = io(); // 클라이언트가 웹소켓에 연결
+
+      // 웹소켓 룸에 join 요청할 현재 채팅방 id를 서버로 전송
+      socket.emit("room-id", "<%= room._id %>"); // "room-id"이라는 이름으로 서버에 데이터 전송
+
+      //
+      document.querySelector(".chat-button").addEventListener("click", () => {
+        let message = document.querySelector(".chat-input").value;
+        socket.emit("message", {
+          msg: message,
+          from: "<%= user %>",
+          room: "<%= room._id %>",
+        });
+        document.querySelector(".chat-input").value = "";
+      });
+
+      socket.on("broadcast", (data) => {
+        let chatbox = document.createElement("div");
+        chatbox.innerHTML = `<span>${data.msg}</span>`;
+        chatbox.classList.add("chat-box");
+        if (data.from == "<%= user %>") {
+          chatbox.classList.add("mine");
+        }
+        document.querySelector(".chat-screen").appendChild(chatbox);
+      });
+
+      // socket.on("dataName", (data) => {}); // 서버에서 보낸 데이터 수신
+    </script>
   </body>
 </html>

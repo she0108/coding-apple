@@ -8,6 +8,12 @@ const methodOverride = require("method-override");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 
+// socket.io
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const server = createServer(app);
+const io = new Server(server);
+
 // static 파일을 추가하려면 해당 파일이 있는 폴더를 server.js에 등록해야 함
 // "/public" 경로에 있는 파일들을 html에서 사용 가능하도록 함
 app.use(express.static(__dirname + "/public"));
@@ -59,7 +65,6 @@ connectDB
 
 // 작성페이지, 수정페이지에 들어가려면 로그인해야 함
 checkLogin = (req, res, next) => {
-  console.log(req.user);
   if (!req.user) {
     return res.redirect("/login");
   } else next();
@@ -108,7 +113,7 @@ passport.deserializeUser(async (user, done) => {
 // 내 컴퓨터에서 8080 PORT 오픈
 // PORT: 다른 컴퓨터에서 내 컴퓨터에 접속할 수 있는 통로
 // "http://IPv4주소:PORT번호"로 내 컴퓨터에 접속 가능
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log(`http://localhost:${process.env.PORT} 에서 서버 실행 중`);
 });
 
@@ -353,7 +358,7 @@ app.post("/comment", async (req, res) => {
   }
 });
 
-app.post("/chat/request", async (req, res) => {
+app.get("/chat/request", async (req, res) => {
   // 채팅방 존재하는지 확인
   let chatId;
   let users = [new ObjectId(req.user._id), new ObjectId(req.query.id)];
@@ -384,9 +389,41 @@ app.get("/chat/list", async (req, res) => {
 // 채팅방 상세페이지
 app.get("/chat/detail/:id", async (req, res) => {
   let id = req.params.id;
-  let chatroom = await db.collection("chatroom").findOnd({ _id: id }).toArray();
-  if (chatroom[0].users.includes(req.user._id)) {
-    return res.render("chatDetail.ejs", { chatroom: chatroom });
+  let chatroom = await db
+    .collection("chatroom")
+    .findOne({ _id: new ObjectId(id) });
+  let messages = await db.collection("message").find({ room: id }).toArray();
+  if (
+    chatroom.users.some(
+      (user) => user.toString() == new ObjectId(req.user._id).toString()
+    )
+  ) {
+    return res.render("chatDetail.ejs", {
+      room: chatroom,
+      messages: messages,
+      user: req.user._id,
+    });
   }
   res.send("잘못된 접근");
+});
+
+// 클라이언트에서 웹소켓 연결 시 실행
+io.on("connection", (socket) => {
+  console.log("웹소켓 연결");
+
+  socket.on("room-id", async (data) => {
+    socket.join(data); // 유저를 특정 room에 집어넣음
+    console.log("join room " + data);
+  }); // 클라이언트가 전송한 데이터 수신
+
+  socket.on("message", async (data) => {
+    await db.collection("message").insertOne({
+      room: data.room,
+      msg: data.msg,
+      from: data.from,
+    });
+    io.to(data.room).emit("broadcast", { msg: data.msg, from: data.from }); // 특정 room에만 데이터 전송
+  });
+
+  io.emit("dataName", "data"); // 서버에서 (웹소켓에 연결된 모든) 클라이언트로 데이터 전송
 });
